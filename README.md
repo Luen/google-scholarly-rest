@@ -49,8 +49,8 @@ URL: /search_publications?query=<search_query>
 Method: GET
 Description: Searches for publications by query / specific keyword.
 Example: [/search_publications?query=Epaulette%20sharks](http://172.0.0.1:5000/search_publications?query=Epaulette%20sharks)
-## Find Related Articles
-URL: /get_related_articles?pub_id=<publication_id>
+## Find Related publications
+URL: /get_related_publications?pub_id=<publication_id>
 Method: GET
 Description: Finds articles related to a specific publication.
 ## Cited By

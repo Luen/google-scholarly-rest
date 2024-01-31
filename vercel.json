@@ -1,0 +1,36 @@
+{
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/"
+    },
+    {
+      "source": "/search_author(.*)",
+      "destination": "/search_author"
+    },
+    {
+      "source": "/author_publications(.*)",
+      "destination": "/author_publications"
+    },
+    {
+      "source": "/search_author_custom_url(.*)",
+      "destination": "/search_author_custom_url"
+    },
+    {
+      "source": "/search_publications(.*)",
+      "destination": "/search_publications"
+    },
+    {
+      "source": "/get_related_publications(.*)",
+      "destination": "/get_related_publications"
+    },
+    {
+      "source": "/cited_by(.*)",
+      "destination": "/cited_by"
+    },
+    {
+      "source": "/download_mandates_csv(.*)",
+      "destination": "/download_mandates_csv"
+    }
+  ]
+}

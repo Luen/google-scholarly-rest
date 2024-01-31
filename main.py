@@ -78,7 +78,7 @@ def search_publications():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/get_related_articles', methods=['GET'])
+@app.route('/get_related_publications', methods=['GET'])
 def get_related_articles():
     pub_id = request.args.get('pub_id')
     if not pub_id:
