@@ -34,16 +34,19 @@ Description: Displays a welcome message in plain text.
 URL: /search_author?name=<author_name>
 Method: GET
 Description: Searches for authors by name.
+Parameter: name
 Example: [/search_author?name=Jodie%20Rummer](http://127.0.0.1:5000/search_author?name=Jodie%20Rummer)
 ## Get Coauthors
 URL: /get_coauthors
 Method: GET
 Description: Retrieves collaborators for a specific author.
+Parameter: author_id
 Example: [/get_coauthors?author_id=ynWS968AAAAJ](http://172.0.0.1:5000/get_coauthors?author_id=ynWS968AAAAJ)
 ## Author Publications
 URL: /author_publications?author_id=<author_id>
 Method: GET
 Description: Retrieves publications for a specific author.
+Parameter: author_id
 Example: [/author_publications?author_id=ynWS968AAAAJ](http://172.0.0.1:5000/author_publications?author_id=ynWS968AAAAJ)
 ## Access Author Information by Custom URL
 URL: /search_author_custom_url?url=<custom_url>
