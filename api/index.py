@@ -5,9 +5,11 @@ from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
-@app.route('/', methods=['GET'])
+
+@app.route("/", methods=["GET"])
 def index():
-    return 'Welcome to the scholarly API'
+    return "Welcome to the scholarly API"
+
 
 # Optional: Setup proxy
 # Uncomment the following lines if you want to use proxies.
@@ -15,11 +17,12 @@ def index():
 # pg.FreeProxies()
 # scholarly.use_proxy(pg)
 
-@app.route('/search_author', methods=['GET'])
+
+@app.route("/search_author", methods=["GET"])
 def search_author():
-    name = request.args.get('name')
+    name = request.args.get("name")
     if not name:
-        return jsonify({'error': 'Missing name parameter'}), 400
+        return jsonify({"error": "Missing name parameter"}), 400
 
     try:
         search_query = scholarly.search_author(name)
@@ -33,72 +36,88 @@ def search_author():
             except StopIteration:
                 break  # No more results
         if not authors:  # Check if authors list is empty
-            return jsonify({'error': 'No authors found'}), 404
+            return jsonify({"error": "No authors found"}), 404
         return jsonify(authors)
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
 
-@app.route('/get_coauthors', methods=['GET'])
+@app.route("/get_coauthors", methods=["GET"])
 def get_coauthors():
-    author_id = request.args.get('author_id')
+    author_id = request.args.get("author_id")
     if not author_id:
-        return jsonify({'error': 'Missing author_id parameter'}), 400
+        return jsonify({"error": "Missing author_id parameter"}), 400
 
     try:
+        # Search for the author using the provided ID
         author = scholarly.search_author_id(author_id)
-        coauthors = scholarly.fill(author, sections=['coauthors'])['coauthors']
-        return jsonify(coauthors)
+        # Fill the author information for the coauthors section
+        author = scholarly.fill(author, sections=["coauthors"])
+        # Transform coauthors list into a JSON-serializable format
+        coauthors_json = [
+            {
+                "name": coauthor["name"],
+                "affiliation": coauthor["affiliation"],
+                "scholar_id": coauthor["scholar_id"],
+                "filled": coauthor["filled"],
+                "source": coauthor["source"],
+            }
+            for coauthor in author["coauthors"]
+        ]
+        return jsonify(coauthors_json)
+
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
 
-@app.route('/author_publications', methods=['GET'])
+@app.route("/author_publications", methods=["GET"])
 def author_publications():
-    author_id = request.args.get('author_id')
+    author_id = request.args.get("author_id")
     if not author_id:
-        return jsonify({'error': 'Missing author_id parameter'}), 400
+        return jsonify({"error": "Missing author_id parameter"}), 400
 
     try:
         author = scholarly.search_author_id(author_id)
-        publications = scholarly.fill(author, sections=['publications'])['publications']
+        publications = scholarly.fill(author, sections=["publications"])["publications"]
         return jsonify(publications)
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
 
-@app.route('/search_author_custom_url', methods=['GET'])
+@app.route("/search_author_custom_url", methods=["GET"])
 def search_author_custom_url():
-    url = request.args.get('url')
+    url = request.args.get("url")
     if not url:
-        return jsonify({'error': 'Missing url parameter'}), 400
+        return jsonify({"error": "Missing url parameter"}), 400
 
     try:
         author = scholarly.search_author_custom_url(url)
         return jsonify(author)
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
 
-@app.route('/search_publications', methods=['GET'])
+@app.route("/search_publications", methods=["GET"])
 def search_publications():
-    query = request.args.get('query')
+    query = request.args.get("query")
     if not query:
-        return jsonify({'error': 'Missing query parameter'}), 400
+        return jsonify({"error": "Missing query parameter"}), 400
 
     try:
         search_query = scholarly.search_pubs(query)
-        publications = [next(search_query, None) for _ in range(5)]  # Adjust range as needed
+        publications = [
+            next(search_query, None) for _ in range(5)
+        ]  # Adjust range as needed
         return jsonify(publications)
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
 
-@app.route('/get_related_publications', methods=['GET'])
+@app.route("/get_related_publications", methods=["GET"])
 def get_related_articles():
-    pub_id = request.args.get('pub_id')
+    pub_id = request.args.get("pub_id")
     if not pub_id:
-        return jsonify({'error': 'Missing pub_id parameter'}), 400
+        return jsonify({"error": "Missing pub_id parameter"}), 400
 
     try:
         publication = scholarly.search_pubs(pub_id)
@@ -106,14 +125,14 @@ def get_related_articles():
         articles = [next(related_articles, None) for _ in range(5)]  # Adjust as needed
         return jsonify(articles)
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
 
-@app.route('/cited_by', methods=['GET'])
+@app.route("/cited_by", methods=["GET"])
 def cited_by():
-    pub_id = request.args.get('pub_id')
+    pub_id = request.args.get("pub_id")
     if not pub_id:
-        return jsonify({'error': 'Missing pub_id parameter'}), 400
+        return jsonify({"error": "Missing pub_id parameter"}), 400
 
     try:
         # Replace this with the actual method to retrieve a publication by its ID
@@ -130,17 +149,20 @@ def cited_by():
                 break  # No more citations available
         return jsonify(citations)
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
-@app.route('/download_mandates_csv', methods=['GET'])
+
+@app.route("/download_mandates_csv", methods=["GET"])
 def download_mandates_csv():
-    filename = secure_filename(request.args.get('filename', 'mandates.csv'))
+    filename = secure_filename(request.args.get("filename", "mandates.csv"))
     try:
         scholarly.download_mandates_csv(filename, overwrite=True, include_links=True)
-        return send_from_directory(directory=app.config['DOWNLOAD_FOLDER'], path=filename, as_attachment=True)
+        return send_from_directory(
+            directory=app.config["DOWNLOAD_FOLDER"], path=filename, as_attachment=True
+        )
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(debug=False)

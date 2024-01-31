@@ -19,7 +19,7 @@ This Flask application provides a RESTful API to interact with [Google Scholar](
 
 # Running the API
 Navigate to the project directory and run the Flask application:
-`python main.py`
+`python ./api/index.py`
 
 The API will be available at http://localhost:5000.
 
