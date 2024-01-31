@@ -35,6 +35,11 @@ URL: /search_author?name=<author_name>
 Method: GET
 Description: Searches for authors by name.
 Example: [/search_author?name=Jodie%20Rummer](http://127.0.0.1:5000/search_author?name=Jodie%20Rummer)
+## Get Coauthors
+URL: /get_coauthors
+Method: GET
+Description: Retrieves collaborators for a specific author.
+Example: [/get_coauthors?author_id=ynWS968AAAAJ](http://172.0.0.1:5000/get_coauthors?author_id=ynWS968AAAAJ)
 ## Author Publications
 URL: /author_publications?author_id=<author_id>
 Method: GET

@@ -39,6 +39,20 @@ def search_author():
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/get_coauthors', methods=['GET'])
+def get_coauthors():
+    author_id = request.args.get('author_id')
+    if not author_id:
+        return jsonify({'error': 'Missing author_id parameter'}), 400
+
+    try:
+        author = scholarly.search_author_id(author_id)
+        coauthors = scholarly.fill(author, sections=['coauthors'])['coauthors']
+        return jsonify(coauthors)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/author_publications', methods=['GET'])
 def author_publications():
     author_id = request.args.get('author_id')
@@ -65,6 +79,7 @@ def search_author_custom_url():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+
 @app.route('/search_publications', methods=['GET'])
 def search_publications():
     query = request.args.get('query')
@@ -77,6 +92,7 @@ def search_publications():
         return jsonify(publications)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 @app.route('/get_related_publications', methods=['GET'])
 def get_related_articles():
