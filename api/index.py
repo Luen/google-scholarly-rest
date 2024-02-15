@@ -6,6 +6,11 @@ from werkzeug.utils import secure_filename
 app = Flask(__name__)
 
 
+@app.route("/favicon.ico", methods=["GET"])
+def favicon():
+    return send_from_directory(app.root_path, "favicon.ico")
+
+
 @app.route("/", methods=["GET"])
 def index():
     return "Welcome to the scholarly API"
