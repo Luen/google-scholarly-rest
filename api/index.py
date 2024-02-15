@@ -1,4 +1,5 @@
-from flask import Flask, jsonify, request
+import os
+from flask import Flask, jsonify, request, send_from_directory
 from scholarly import scholarly, ProxyGenerator
 from flask import send_from_directory
 from werkzeug.utils import secure_filename
@@ -8,7 +9,9 @@ app = Flask(__name__)
 
 @app.route("/favicon.ico", methods=["GET"])
 def favicon():
-    return send_from_directory(app.root_path, "favicon.ico")
+    return send_from_directory(
+        os.path.join(os.path.dirname(app.root_path), ""), "favicon.ico"
+    )
 
 
 @app.route("/", methods=["GET"])
