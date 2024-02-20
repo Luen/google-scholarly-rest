@@ -3,15 +3,23 @@ from flask import Flask, jsonify, request, send_from_directory
 from scholarly import scholarly, ProxyGenerator
 from flask import send_from_directory
 from werkzeug.utils import secure_filename
+import traceback
+from logging import basicConfig, getLogger, INFO
 
 app = Flask(__name__)
 
+basicConfig(level=INFO)
+log = getLogger(__name__)
 
 @app.route("/favicon.ico", methods=["GET"])
 def favicon():
-    return send_from_directory(
-        os.path.join(os.path.dirname(app.root_path), ""), "favicon.ico"
-    )
+    try:
+        return send_from_directory(
+            os.path.join(os.path.dirname(app.root_path), ""), "favicon.ico"
+        )
+    except Exception as e:
+        log(traceback.format_exc())
+        return "An internal error has occurred!"
 
 
 @app.route("/", methods=["GET"])
@@ -47,7 +55,8 @@ def search_author():
             return jsonify({"error": "No authors found"}), 404
         return jsonify(authors)
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        log(traceback.format_exc())
+        return jsonify({"error": "An internal error has occurred!"}), 500
 
 
 @app.route("/get_coauthors", methods=["GET"])
@@ -75,7 +84,8 @@ def get_coauthors():
         return jsonify(coauthors_json)
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        log(traceback.format_exc())
+        return jsonify({"error": "An internal error has occurred!"}), 500
 
 
 @app.route("/author_publications", methods=["GET"])
@@ -89,7 +99,8 @@ def author_publications():
         publications = scholarly.fill(author, sections=["publications"])["publications"]
         return jsonify(publications)
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        log(traceback.format_exc())
+        return jsonify({"error": "An internal error has occurred!"}), 500
 
 
 @app.route("/search_author_custom_url", methods=["GET"])
@@ -102,7 +113,8 @@ def search_author_custom_url():
         author = scholarly.search_author_custom_url(url)
         return jsonify(author)
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        log(traceback.format_exc())
+        return jsonify({"error": "An internal error has occurred!"}), 500
 
 
 @app.route("/search_publications", methods=["GET"])
@@ -118,7 +130,8 @@ def search_publications():
         ]  # Adjust range as needed
         return jsonify(publications)
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        log(traceback.format_exc())
+        return jsonify({"error": "An internal error has occurred!"}), 500
 
 
 @app.route("/get_related_publications", methods=["GET"])
@@ -133,7 +146,7 @@ def get_related_articles():
         articles = [next(related_articles, None) for _ in range(5)]  # Adjust as needed
         return jsonify(articles)
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "An internal error has occurred!"}), 500
 
 
 @app.route("/cited_by", methods=["GET"])
@@ -157,7 +170,8 @@ def cited_by():
                 break  # No more citations available
         return jsonify(citations)
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        log(traceback.format_exc())
+        return jsonify({"error": "An internal error has occurred!"}), 500
 
 
 @app.route("/download_mandates_csv", methods=["GET"])
@@ -169,7 +183,8 @@ def download_mandates_csv():
             directory=app.config["DOWNLOAD_FOLDER"], path=filename, as_attachment=True
         )
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        log(traceback.format_exc())
+        return jsonify({"error": "An internal error has occurred!"}), 500
 
 
 if __name__ == "__main__":

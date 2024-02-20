@@ -15,7 +15,7 @@ This Flask application provides a RESTful API to interact with [Google Scholar](
 - scholarly
 ## Setup
 1. Clone this repository to your local machine.
-2. Install the required packages: `pip install Flask scholarly`
+2. Install the required packages: `pip install Flask scholarly` or `pip3 install -r requirements.txt`
 
 # Running the API
 Navigate to the project directory and run the Flask application:
