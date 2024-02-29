@@ -11,6 +11,7 @@ app = Flask(__name__)
 basicConfig(level=INFO)
 log = getLogger(__name__)
 
+
 @app.route("/favicon.ico", methods=["GET"])
 def favicon():
     try:
@@ -48,7 +49,6 @@ def search_author():
                 author = next(search_query, None)
                 if author is None:  # Break the loop if no more results
                     break
-                authors.append(scholarly.fill(author))
             except StopIteration:
                 break  # No more results
         if not authors:  # Check if authors list is empty
@@ -57,7 +57,7 @@ def search_author():
     except Exception as e:
         log(traceback.format_exc())
         return jsonify({"error": "An internal error has occurred!"}), 500
-    
+
 
 @app.route("/search_author_id", methods=["GET"])
 def search_author_id():
@@ -73,7 +73,17 @@ def search_author_id():
                 author = next(search_query, None)
                 if author is None:  # Break the loop if no more results
                     break
-                authors.append(scholarly.fill(author))
+
+                authors.append(scholarly.fill(author))  # Fill the author information
+
+                filled_publications = []
+                for pub in author["publications"]:
+                    filled_pub = scholarly.fill(
+                        pub
+                    )  # Fill each publication individually
+                    filled_publications.append(filled_pub)
+                author["publications"] = filled_publications
+
             except StopIteration:
                 break  # No more results
         if not authors:  # Check if authors list is empty
@@ -100,6 +110,7 @@ def search_org():
     except Exception as e:
         log(traceback.format_exc())
         return jsonify({"error": "An internal error has occurred!"}), 500
+
 
 @app.route("/search_keyword", methods=["GET"])
 def search_keyword():
