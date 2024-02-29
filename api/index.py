@@ -43,7 +43,7 @@ def search_author():
     try:
         search_query = scholarly.search_author(name)
         authors = []
-        for _ in range(3):  # Attempt to fetch up to 3 authors
+        for _ in range(1):  # Attempt to fetch up to 1 authors
             try:
                 author = next(search_query, None)
                 if author is None:  # Break the loop if no more results
@@ -54,6 +54,65 @@ def search_author():
         if not authors:  # Check if authors list is empty
             return jsonify({"error": "No authors found"}), 404
         return jsonify(authors)
+    except Exception as e:
+        log(traceback.format_exc())
+        return jsonify({"error": "An internal error has occurred!"}), 500
+    
+
+@app.route("/search_author_id", methods=["GET"])
+def search_author_id():
+    id = request.args.get("id")
+    if not id:
+        return jsonify({"error": "Missing id parameter"}), 400
+
+    try:
+        search_query = scholarly.search_author_id(id)
+        authors = []
+        for _ in range(1):  # Attempt to fetch up to 1 authors
+            try:
+                author = next(search_query, None)
+                if author is None:  # Break the loop if no more results
+                    break
+                authors.append(scholarly.fill(author))
+            except StopIteration:
+                break  # No more results
+        if not authors:  # Check if authors list is empty
+            return jsonify({"error": "No authors found"}), 404
+        return jsonify(authors)
+    except Exception as e:
+        log(traceback.format_exc())
+        return jsonify({"error": "An internal error has occurred!"}), 500
+
+
+# search_author_by_organization
+@app.route("/search_org", methods=["GET"])
+def search_org():
+    query = request.args.get("query")
+    if not query:
+        return jsonify({"error": "Missing query parameter"}), 400
+
+    try:
+        search_query = scholarly.search_keyword(query)
+        publications = [
+            next(search_query, None) for _ in range(5)
+        ]  # Adjust range as needed
+        return jsonify(publications)
+    except Exception as e:
+        log(traceback.format_exc())
+        return jsonify({"error": "An internal error has occurred!"}), 500
+
+@app.route("/search_keyword", methods=["GET"])
+def search_keyword():
+    query = request.args.get("query")
+    if not query:
+        return jsonify({"error": "Missing query parameter"}), 400
+
+    try:
+        search_query = scholarly.search_keyword(query)
+        publications = [
+            next(search_query, None) for _ in range(5)
+        ]  # Adjust range as needed
+        return jsonify(publications)
     except Exception as e:
         log(traceback.format_exc())
         return jsonify({"error": "An internal error has occurred!"}), 500
@@ -142,6 +201,7 @@ def get_related_articles():
 
     try:
         publication = scholarly.search_pubs(pub_id)
+        # return jsonify(publication)
         related_articles = scholarly.get_related_articles(publication)
         articles = [next(related_articles, None) for _ in range(5)]  # Adjust as needed
         return jsonify(articles)
