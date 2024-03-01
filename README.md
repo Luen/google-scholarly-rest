@@ -17,11 +17,32 @@ This Flask application provides a RESTful API to interact with [Google Scholar](
 1. Clone this repository to your local machine.
 2. Install the required packages: `pip install Flask scholarly` or `pip3 install -r requirements.txt`
 
-# Running the API
+# Running the API in development mode
 Navigate to the project directory and run the Flask application:
 `python ./api/index.py`
 
 The API will be available at http://localhost:5000.
+
+# Using Proxies
+
+## Free Proxies
+Just uncomment the proxy code
+
+## To use scraperapi.com
+
+Uncomment the proxy code adn add an environment variable.
+
+For Temporary Use: You can set an environment variable in your current terminal session. The exact command depends on your shell. For most Unix-like systems (like macOS or Linux), you can use:
+`export SCRAPER_API_KEY='your_scraperapi_key_here'`
+
+If you're using Windows Command Prompt, the command will be:
+`set SCRAPER_API_KEY=your_scraperapi_key_here`
+
+And for PowerShell:
+`$env:SCRAPER_API_KEY="your_scraperapi_key_here"`
+
+For Permanent Use: Add the export or set command to your shell's profile script (like .bashrc, .bash_profile, .zshrc, etc.), so the environment variable is automatically set in future terminal sessions.
+
 
 # API Endpoints
 https://scholarly.readthedocs.io/en/stable/scholarly.html
@@ -36,6 +57,24 @@ Method: GET
 Description: Searches for authors by name.
 Parameter: name
 Example: [/search_author?name=Jodie%20Rummer](http://127.0.0.1:5000/search_author?name=Jodie%20Rummer)
+## Get Author
+URL: /search_author_id?id=<author_name>
+Method: GET
+Description: Searches for authors by id.
+Parameter: id
+Example: [/search_author_id?id=ynWS968AAAAJ](http://127.0.0.1:5000/search_author_id?id=ynWS968AAAAJ)
+## Search Organisation
+URL: /search_org?query=<query>
+Method: GET
+Description: Searches author by organisation.
+Parameter: query
+Example: [/search_org?query=James%20Cook%20University](http://127.0.0.1:5000/search_org?query=James%20Cook%20University)
+## Search Keyword
+URL: /search_keyword?query=<query>
+Method: GET
+Description: Searches keyword.
+Parameter: query
+Example: [/search_keyword?query=test](http://127.0.0.1:5000/search_org?query=test)
 ## Get Coauthors
 URL: /get_coauthors
 Method: GET
@@ -61,6 +100,7 @@ Example: [/search_publications?query=Epaulette%20sharks](http://172.0.0.1:5000/s
 URL: /get_related_publications?pub_id=<publication_id>
 Method: GET
 Description: Finds articles related to a specific publication.
+Example: [/get_related_publications?pub_id=4DMP91E08xMC](http://172.0.0.1:5000/get_related_publications?pub_id=4DMP91E08xMC)
 ## Cited By
 URL: /cited_by?pub_id=<publication_id>
 Method: GET

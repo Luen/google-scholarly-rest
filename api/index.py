@@ -28,10 +28,16 @@ def index():
     return "Welcome to the scholarly API"
 
 
+# https://scholarly.readthedocs.io/en/stable/quickstart.html
 # Optional: Setup proxy
-# Uncomment the following lines if you want to use proxies.
+# Uncomment the following lines if you want to use free proxies.
 # pg = ProxyGenerator()
 # pg.FreeProxies()
+# scholarly.use_proxy(pg)
+
+# Uncomment the following lines if you want to use Scraper API proxies.
+# pg = ProxyGenerator()
+# success = pg.ScraperAPI(os.getenv("SCRAPER_API_KEY"))
 # scholarly.use_proxy(pg)
 
 
@@ -66,29 +72,23 @@ def search_author_id():
         return jsonify({"error": "Missing id parameter"}), 400
 
     try:
-        search_query = scholarly.search_author_id(id)
-        authors = []
-        for _ in range(1):  # Attempt to fetch up to 1 authors
-            try:
-                author = next(search_query, None)
-                if author is None:  # Break the loop if no more results
-                    break
+        author = scholarly.search_author_id(id)
 
-                authors.append(scholarly.fill(author))  # Fill the author information
+        if not author or author is None:  # Break the loop if no more results
+            return jsonify({"error": "No author found"}), 404
 
-                filled_publications = []
-                for pub in author["publications"]:
-                    filled_pub = scholarly.fill(
-                        pub
-                    )  # Fill each publication individually
-                    filled_publications.append(filled_pub)
-                author["publications"] = filled_publications
+        try:
+            author = scholarly.fill(author)  # Fill the author information
 
-            except StopIteration:
-                break  # No more results
-        if not authors:  # Check if authors list is empty
-            return jsonify({"error": "No authors found"}), 404
-        return jsonify(authors)
+            filled_publications = []
+            for pub in author["publications"]:
+                filled_pub = scholarly.fill(pub)  # Fill each publication individually
+                filled_publications.append(filled_pub)
+            author["publications"] = filled_publications
+            return jsonify(author)
+        except Exception as e:
+            log(traceback.format_exc())
+            return jsonify({"error": "An internal error has occurred!"}), 500
     except Exception as e:
         log(traceback.format_exc())
         return jsonify({"error": "An internal error has occurred!"}), 500
