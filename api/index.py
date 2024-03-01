@@ -80,11 +80,12 @@ def search_author_id():
         try:
             author = scholarly.fill(author)  # Fill the author information
 
-            filled_publications = []
-            for pub in author["publications"]:
-                filled_pub = scholarly.fill(pub)  # Fill each publication individually
-                filled_publications.append(filled_pub)
-            author["publications"] = filled_publications
+            # filled_publications = []
+            # for pub in author["publications"]:
+            #    filled_pub = scholarly.fill(pub)  # Fill each publication individually
+            #    filled_publications.append(filled_pub)
+            # author["publications"] = filled_publications
+
             return jsonify(author)
         except Exception as e:
             log(traceback.format_exc())
@@ -195,10 +196,13 @@ def search_publications():
 
     try:
         search_query = scholarly.search_pubs(query)
-        publications = [
-            next(search_query, None) for _ in range(5)
-        ]  # Adjust range as needed
-        return jsonify(publications)
+        publication = next(search_query, None)
+        if publication is None:
+            return jsonify({"error": "No publication found"}), 404
+
+        # Fill the publication information
+        filled_publication = scholarly.fill(publication)
+        return jsonify(filled_publication)
     except Exception as e:
         log(traceback.format_exc())
         return jsonify({"error": "An internal error has occurred!"}), 500
