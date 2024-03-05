@@ -31,9 +31,9 @@ def index():
 # https://scholarly.readthedocs.io/en/stable/quickstart.html
 # Optional: Setup proxy
 # Uncomment the following lines if you want to use free proxies.
-pg = ProxyGenerator()
-pg.FreeProxies()
-scholarly.use_proxy(pg)
+# pg = ProxyGenerator()
+# pg.FreeProxies()
+# scholarly.use_proxy(pg)
 
 # Uncomment the following lines if you want to use Scraper API proxies.
 # pg = ProxyGenerator()
@@ -55,7 +55,7 @@ def search_author():
                 author = next(search_query, None)
                 if author is None:  # Break the loop if no more results
                     break
-                author = scholarly.fill(author)
+                # author = scholarly.fill(author)
             except StopIteration:
                 break  # No more results
         if not authors:  # Check if authors list is empty
