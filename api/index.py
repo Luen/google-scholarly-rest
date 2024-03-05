@@ -31,9 +31,9 @@ def index():
 # https://scholarly.readthedocs.io/en/stable/quickstart.html
 # Optional: Setup proxy
 # Uncomment the following lines if you want to use free proxies.
-# pg = ProxyGenerator()
-# pg.FreeProxies()
-# scholarly.use_proxy(pg)
+pg = ProxyGenerator()
+pg.FreeProxies()
+scholarly.use_proxy(pg)
 
 # Uncomment the following lines if you want to use Scraper API proxies.
 # pg = ProxyGenerator()
