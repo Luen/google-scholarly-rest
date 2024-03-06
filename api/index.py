@@ -1,15 +1,35 @@
 import os
 from flask import Flask, jsonify, request, send_from_directory
+from flask_caching import Cache
 from scholarly import scholarly, ProxyGenerator
-from flask import send_from_directory
 from werkzeug.utils import secure_filename
 import traceback
 from logging import basicConfig, getLogger, INFO
 
 app = Flask(__name__)
 
+cachetime = 604800  # 7 days in seconds
+# Flask-Caching configuration
+app.config["CACHE_TYPE"] = "simple"  # Consider 'redis' or 'memcached' for production
+app.config["CACHE_DEFAULT_TIMEOUT"] = (
+    cachetime  # Cache duration in seconds (604800 seconds = 7 days)
+)
+cache = Cache(app)
+
 basicConfig(level=INFO)
 log = getLogger(__name__)
+
+
+@app.after_request
+def set_cache_header(response):
+    """
+    Modify the response to add Cache-Control headers.
+    """
+    # Set the Cache-Control header
+    response.headers["Cache-Control"] = (
+        "public, max-age=604800, stale-while-revalidate=86400"
+    )
+    return response
 
 
 @app.route("/favicon.ico", methods=["GET"])
@@ -41,7 +61,17 @@ scholarly.use_proxy(pg)
 # scholarly.use_proxy(pg)
 
 
+# @app.before_first_request
+# def run_on_startup():
+#    author_id = "uMGpMmYAAAAJ"
+#    author_info = fetch_author_info_by_id(author_id)
+#    # Manually cache the result for the /search_author_id endpoint.
+#    cache_key = f"view/{request.host_url}search_author_id?id={author_id}"
+#    cache.set(cache_key, author_info, timeout=cachetime)
+
+
 @app.route("/search_author", methods=["GET"])
+@cache.cached(timeout=cachetime, query_string=True)
 def search_author():
     name = request.args.get("name")
     if not name:
@@ -67,6 +97,7 @@ def search_author():
 
 
 @app.route("/search_author_id", methods=["GET"])
+@cache.cached(timeout=cachetime, query_string=True)
 def search_author_id():
     id = request.args.get("id")
     if not id:
@@ -98,6 +129,7 @@ def search_author_id():
 
 # search_author_by_organization
 @app.route("/search_org", methods=["GET"])
+@cache.cached(timeout=cachetime, query_string=True)
 def search_org():
     query = request.args.get("query")
     if not query:
@@ -115,6 +147,7 @@ def search_org():
 
 
 @app.route("/search_keyword", methods=["GET"])
+@cache.cached(timeout=cachetime, query_string=True)
 def search_keyword():
     query = request.args.get("query")
     if not query:
@@ -132,6 +165,7 @@ def search_keyword():
 
 
 @app.route("/get_coauthors", methods=["GET"])
+@cache.cached(timeout=cachetime, query_string=True)
 def get_coauthors():
     author_id = request.args.get("author_id")
     if not author_id:
@@ -161,6 +195,7 @@ def get_coauthors():
 
 
 @app.route("/author_publications", methods=["GET"])
+@cache.cached(timeout=cachetime, query_string=True)
 def author_publications():
     author_id = request.args.get("author_id")
     if not author_id:
@@ -175,21 +210,23 @@ def author_publications():
         return jsonify({"error": "An internal error has occurred!"}), 500
 
 
-@app.route("/search_author_custom_url", methods=["GET"])
-def search_author_custom_url():
-    url = request.args.get("url")
-    if not url:
-        return jsonify({"error": "Missing url parameter"}), 400
-
-    try:
-        author = scholarly.search_author_custom_url(url)
-        return jsonify(author)
-    except Exception as e:
-        log(traceback.format_exc())
-        return jsonify({"error": "An internal error has occurred!"}), 500
+# @app.route("/search_author_custom_url", methods=["GET"])
+# @cache.cached(timeout=cachetime, query_string=True)
+# def search_author_custom_url():
+#    url = request.args.get("url")
+#    if not url:
+#        return jsonify({"error": "Missing url parameter"}), 400
+#
+#    try:
+#        author = scholarly.search_author_custom_url(url)
+#        return jsonify(author)
+#    except Exception as e:
+#        log(traceback.format_exc())
+#        return jsonify({"error": "An internal error has occurred!"}), 500
 
 
 @app.route("/search_publications", methods=["GET"])
+@cache.cached(timeout=cachetime, query_string=True)
 def search_publications():
     query = request.args.get("query")
     if not query:
@@ -210,6 +247,7 @@ def search_publications():
 
 
 @app.route("/get_related_publications", methods=["GET"])
+@cache.cached(timeout=cachetime, query_string=True)
 def get_related_articles():
     pub_id = request.args.get("pub_id")
     if not pub_id:
@@ -226,6 +264,7 @@ def get_related_articles():
 
 
 @app.route("/cited_by", methods=["GET"])
+@cache.cached(timeout=cachetime, query_string=True)
 def cited_by():
     pub_id = request.args.get("pub_id")
     if not pub_id:
@@ -250,17 +289,18 @@ def cited_by():
         return jsonify({"error": "An internal error has occurred!"}), 500
 
 
-@app.route("/download_mandates_csv", methods=["GET"])
-def download_mandates_csv():
-    filename = secure_filename(request.args.get("filename", "mandates.csv"))
-    try:
-        scholarly.download_mandates_csv(filename, overwrite=True, include_links=True)
-        return send_from_directory(
-            directory=app.config["DOWNLOAD_FOLDER"], path=filename, as_attachment=True
-        )
-    except Exception as e:
-        log(traceback.format_exc())
-        return jsonify({"error": "An internal error has occurred!"}), 500
+# @app.route("/download_mandates_csv", methods=["GET"])
+# @cache.cached(timeout=cachetime, query_string=True)
+# def download_mandates_csv():
+#    filename = secure_filename(request.args.get("filename", "mandates.csv"))
+#    try:
+#        scholarly.download_mandates_csv(filename, overwrite=True, include_links=True)
+#        return send_from_directory(
+#            directory=app.config["DOWNLOAD_FOLDER"], path=filename, as_attachment=True
+#        )
+#    except Exception as e:
+#        log(traceback.format_exc())
+#        return jsonify({"error": "An internal error has occurred!"}), 500
 
 
 if __name__ == "__main__":
