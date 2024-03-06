@@ -90,8 +90,15 @@ def is_data_stale(timestamp):
 
 
 def get_author_data(author_id):
-    if os.path.exists(f"{author_id}.json"):
-        with open(f"{author_id}.json", "r") as f:
+    base_path = "/"
+    filename = f"{author_id}.json"
+
+    fullpath = os.path.normpath(os.path.join(base_path, filename))
+    if not fullpath.startswith(base_path):
+        raise Exception("not allowed")
+
+    if os.path.exists(filename):
+        with open(filename, "r") as f:
             cache_content = json.load(f)
             # Serve cached data immediately
             data = cache_content["data"]
