@@ -90,12 +90,8 @@ def is_data_stale(timestamp):
 
 
 def get_author_data(author_id):
-    base_path = "/"
     filename = f"{author_id}.json"
-
-    fullpath = os.path.normpath(os.path.join(base_path, filename))
-    if not fullpath.startswith(base_path):
-        raise Exception("not allowed")
+    filename = secure_filename(filename)
 
     if os.path.exists(filename):
         with open(filename, "r") as f:
@@ -113,7 +109,7 @@ def get_author_data(author_id):
         return "Fetching data, please retry in a few moments."
 
 
-# Fetch author data by ID on start
+# Fetch author data by ID on start, if not already cached
 get_author_data("ynWS968AAAAJ")
 
 
