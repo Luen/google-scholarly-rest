@@ -1,13 +1,15 @@
 import os
-from flask import Flask, jsonify, request, send_from_directory
+import json
+import time
+from flask import Flask, jsonify, request, send_from_directory, signals
 from flask_caching import Cache
+from threading import Thread
 from scholarly import scholarly, ProxyGenerator
 from werkzeug.utils import secure_filename
 import traceback
 from logging import basicConfig, getLogger, INFO
 
 app = Flask(__name__)
-
 cachetime = 604800  # 7 days in seconds
 # Flask-Caching configuration
 app.config["CACHE_TYPE"] = "simple"  # Consider 'redis' or 'memcached' for production
@@ -61,13 +63,51 @@ scholarly.use_proxy(pg)
 # scholarly.use_proxy(pg)
 
 
-# @app.before_first_request
-# def run_on_startup():
-#    author_id = "uMGpMmYAAAAJ"
-#    author_info = fetch_author_info_by_id(author_id)
-#    # Manually cache the result for the /search_author_id endpoint.
-#    cache_key = f"view/{request.host_url}search_author_id?id={author_id}"
-#    cache.set(cache_key, author_info, timeout=cachetime)
+def fetch_cache_author_by_id(author_id):
+    try:
+        author = scholarly.search_author_id(author_id)
+        if not author or author is None:
+            return None
+
+        author = scholarly.fill(author)
+        filled_publications = []
+        for pub in author["publications"]:
+            filled_pub = scholarly.fill(pub)
+            filled_publications.append(filled_pub)
+        author["publications"] = filled_publications
+
+        with open(f"{author_id}.json", "w") as f:
+            json.dump({"data": author, "timestamp": time.time()}, f)
+
+        return author
+    except Exception as e:
+        log(traceback.format_exc())
+        return None
+
+
+def is_data_stale(timestamp):
+    return time.time() - timestamp > cachetime
+
+
+def get_author_data(author_id):
+    if os.path.exists(f"{author_id}.json"):
+        with open(f"{author_id}.json", "r") as f:
+            cache_content = json.load(f)
+            # Serve cached data immediately
+            data = cache_content["data"]
+            if is_data_stale(cache_content["timestamp"]):
+                # Refresh data in the background if stale
+                # if no threads started, start a new one
+                Thread(target=fetch_cache_author_by_id, args=(author_id,)).start()
+            return data
+    else:
+        # No cache available, fetch data initially
+        fetch_cache_author_by_id(author_id)
+        return "Fetching data, please retry in a few moments."
+
+
+# Fetch author data by ID on start
+get_author_data("ynWS968AAAAJ")
 
 
 @app.route("/search_author", methods=["GET"])
@@ -97,34 +137,13 @@ def search_author():
 
 
 @app.route("/search_author_id", methods=["GET"])
-@cache.cached(timeout=cachetime, query_string=True)
 def search_author_id():
     id = request.args.get("id")
     if not id:
         return jsonify({"error": "Missing id parameter"}), 400
 
-    try:
-        author = scholarly.search_author_id(id)
-
-        if not author or author is None:  # Break the loop if no more results
-            return jsonify({"error": "No author found"}), 404
-
-        try:
-            author = scholarly.fill(author)  # Fill the author information
-
-            filled_publications = []
-            for pub in author["publications"]:
-                filled_pub = scholarly.fill(pub)  # Fill each publication individually
-                filled_publications.append(filled_pub)
-            author["publications"] = filled_publications
-
-            return jsonify(author)
-        except Exception as e:
-            log(traceback.format_exc())
-            return jsonify({"error": "An internal error has occurred!"}), 500
-    except Exception as e:
-        log(traceback.format_exc())
-        return jsonify({"error": "An internal error has occurred!"}), 500
+    data = get_author_data(id)
+    return data
 
 
 # search_author_by_organization
