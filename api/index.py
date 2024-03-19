@@ -92,7 +92,7 @@ def is_data_stale(timestamp):
 
 
 def get_author_data(author_id):
-    sanitized_author_id = secure_filename(author_id)
+    sanitized_author_id = secure_filename(author_id.strip())
     filename = f"{cacheDir}id_{sanitized_author_id}.json"
 
     print(f"Checking for cache file: {filename}")
@@ -142,7 +142,7 @@ def fetch_cache_author_search(name):
         return None
     
 def get_author_search(name):
-    sanitized_name = secure_filename(name)
+    sanitized_name = secure_filename(name.strip().lower())
     cache_file = f"{cacheDir}search_{sanitized_name}.json"
 
     if os.path.exists(cache_file):
