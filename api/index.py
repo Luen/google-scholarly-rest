@@ -131,7 +131,7 @@ def fetch_cache_author_search(name):
                 break
             author = scholarly.fill(author)
             authors.append(author)
-        
+        authors = author # return just one result instead of an array
         # Cache the results
         with open(cache_file, "w") as f:
             json.dump({"data": authors, "timestamp": time.time()}, f)
