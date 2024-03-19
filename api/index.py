@@ -78,7 +78,7 @@ def fetch_cache_author_by_id(author_id):
         author["publications"] = filled_publications
 
         sanitized_author_id = secure_filename(author_id) # Sanitize the author_id parameter
-        with open(f"{cacheDir}{sanitized_author_id}.json", "w") as f:  # Use the sanitized author_id in the file path
+        with open(f"{cacheDir}id_{sanitized_author_id}.json", "w") as f:  # Use the sanitized author_id in the file path
             json.dump({"data": author, "timestamp": time.time()}, f)
 
         return author
@@ -93,7 +93,7 @@ def is_data_stale(timestamp):
 
 def get_author_data(author_id):
     sanitized_author_id = secure_filename(author_id)
-    filename = f"{cacheDir}{sanitized_author_id}.json"
+    filename = f"{cacheDir}id_{sanitized_author_id}.json"
 
     print(f"Checking for cache file: {filename}")
 
@@ -118,9 +118,59 @@ def get_author_data(author_id):
         fetch_cache_author_by_id(author_id)
         return "Fetching data, please retry in a few moments."
 
+def fetch_cache_author_search(name):
+    sanitized_name = secure_filename(name)
+    cache_file = f"{cacheDir}search_{sanitized_name}.json"
+    
+    search_query = scholarly.search_author(name)
+    try:
+        authors = []
+        for _ in range(1):  # Fetch up to 1 author for simplicity
+            author = next(search_query, None)
+            if author is None:
+                break
+            author = scholarly.fill(author)
+            authors.append(author)
+        
+        # Cache the results
+        with open(cache_file, "w") as f:
+            json.dump({"data": authors, "timestamp": time.time()}, f)
+        
+        return authors if authors else None
+    except Exception as e:
+        print(f"Error while fetching or caching author search results: {e}")
+        return None
+    
+def get_author_search(name):
+    sanitized_name = secure_filename(name)
+    cache_file = f"{cacheDir}search_{sanitized_name}.json"
+
+    if os.path.exists(cache_file):
+        with open(cache_file, "r") as f:
+            print("Cache found, checking if data is stale..")
+            cache_content = json.load(f)
+            # Serve cached data immediately
+            data = cache_content["data"]
+            if is_data_stale(cache_content["timestamp"]):
+                print("Data is stale, refreshing in the background.")
+                # Refresh data in the background if stale
+                # if no threads started, start a new one
+                thread = Thread(target=fetch_cache_author_search, args=(name,))
+                thread.start()
+                # thread.join()  # Wait for the thread to complete
+            else:
+                print("Data is fresh, serving cached data.")
+            return data
+    else:
+        # No cache available, fetch data initially
+        fetch_cache_author_search(name)
+        return "Fetching data, please retry in a few moments."
 
 # Fetch author data by ID on start, if not already cached
 get_author_data("ynWS968AAAAJ")
+#
+get_author_search("Jodie Rummer")
+
 
 
 @app.route("/search_author", methods=["GET"])
@@ -129,25 +179,12 @@ def search_author():
     name = request.args.get("name")
     if not name:
         return jsonify({"error": "Missing name parameter"}), 400
-
-    try:
-        search_query = scholarly.search_author(name)
-        authors = []
-        for _ in range(1):  # Attempt to fetch up to 1 authors
-            try:
-                author = next(search_query, None)
-                if author is None:  # Break the loop if no more results
-                    break
-                author = scholarly.fill(author)
-                authors.append(author)
-            except StopIteration:
-                break  # No more results
-        if not authors:  # Check if authors list is empty
-            return jsonify({"error": "No authors found"}), 404
-        return jsonify(authors[0])
-    except Exception as e:
-        log(traceback.format_exc())
-        return jsonify({"error": "An internal error has occurred!"}), 500
+    
+    authors = get_author_search(name)
+    if authors is None:
+        return jsonify({"error": "No authors found"}), 404
+    
+    return jsonify(authors[0])
 
 
 @app.route("/search_author_id", methods=["GET"])
@@ -155,9 +192,8 @@ def search_author_id():
     id = request.args.get("id")
     if not id:
         return jsonify({"error": "Missing id parameter"}), 400
-
     data = get_author_data(id)
-    return data
+    return jsonify(data)
 
 
 # search_author_by_organization
@@ -167,7 +203,6 @@ def search_org():
     query = request.args.get("query")
     if not query:
         return jsonify({"error": "Missing query parameter"}), 400
-
     try:
         search_query = scholarly.search_keyword(query)
         publications = [
