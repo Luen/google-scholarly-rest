@@ -11,6 +11,7 @@ from logging import basicConfig, getLogger, INFO
 
 app = Flask(__name__)
 cachetime = 604800  # 7 days in seconds
+cacheDir = "cache/"
 # Flask-Caching configuration
 app.config["CACHE_TYPE"] = "simple"  # Consider 'redis' or 'memcached' for production
 app.config["CACHE_DEFAULT_TIMEOUT"] = (
@@ -76,7 +77,8 @@ def fetch_cache_author_by_id(author_id):
             filled_publications.append(filled_pub)
         author["publications"] = filled_publications
 
-        with open(f"{author_id}.json", "w") as f:
+        sanitized_author_id = secure_filename(author_id) # Sanitize the author_id parameter
+        with open(f"{cacheDir}{sanitized_author_id}.json", "w") as f:  # Use the sanitized author_id in the file path
             json.dump({"data": author, "timestamp": time.time()}, f)
 
         return author
@@ -90,18 +92,26 @@ def is_data_stale(timestamp):
 
 
 def get_author_data(author_id):
-    filename = f"{author_id}.json"
-    filename = secure_filename(filename)
+    sanitized_author_id = secure_filename(author_id)
+    filename = f"{cacheDir}{sanitized_author_id}.json"
+
+    print(f"Checking for cache file: {filename}")
 
     if os.path.exists(filename):
         with open(filename, "r") as f:
+            print("Cache found, checking if data is stale..")
             cache_content = json.load(f)
             # Serve cached data immediately
             data = cache_content["data"]
             if is_data_stale(cache_content["timestamp"]):
+                print("Data is stale, refreshing in the background.")
                 # Refresh data in the background if stale
                 # if no threads started, start a new one
-                Thread(target=fetch_cache_author_by_id, args=(author_id,)).start()
+                thread = Thread(target=fetch_cache_author_by_id, args=(author_id,))
+                thread.start()
+                # thread.join()  # Wait for the thread to complete
+            else:
+                print("Data is fresh, serving cached data.")
             return data
     else:
         # No cache available, fetch data initially
