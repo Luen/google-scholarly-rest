@@ -167,11 +167,9 @@ def get_author_search(name):
         return "Fetching data, please retry in a few moments."
 
 # Fetch author data by ID on start, if not already cached
-get_author_data("ynWS968AAAAJ")
-#
-get_author_search("Jodie Rummer")
-
-
+#get_author_data("ynWS968AAAAJ")
+# Fetch author data by name on start, if not already cached
+#get_author_search("Jodie Rummer")
 
 @app.route("/search_author", methods=["GET"])
 @cache.cached(timeout=cachetime, query_string=True)
