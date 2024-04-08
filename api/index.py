@@ -115,6 +115,7 @@ def get_author_data(author_id):
             return data
     else:
         # No cache available, fetch data initially
+        print("No cache found, fetching data.")
         fetch_cache_author_by_id(author_id)
         return "Fetching data, please retry in a few moments."
 
@@ -164,6 +165,7 @@ def get_author_search(name):
             return data
     else:
         # No cache available, fetch data initially
+        print("No cache found, fetching data.")
         fetch_cache_author_search(name)
         return "Fetching data, please retry in a few moments."
 
