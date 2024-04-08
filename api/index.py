@@ -143,6 +143,7 @@ def fetch_cache_author_search(name):
     
 def get_author_search(name):
     sanitized_name = secure_filename(name.strip().lower())
+    print(f"Checking for cache file: {cacheDir}search_{sanitized_name}.json")
     cache_file = f"{cacheDir}search_{sanitized_name}.json"
 
     if os.path.exists(cache_file):
@@ -178,11 +179,11 @@ def search_author():
     if not name:
         return jsonify({"error": "Missing name parameter"}), 400
     
-    authors = get_author_search(name)
-    if authors is None:
+    author = get_author_search(name)
+    if author is None:
         return jsonify({"error": "No authors found"}), 404
     
-    return jsonify(authors[0])
+    return jsonify(author)
 
 
 @app.route("/search_author_id", methods=["GET"])
