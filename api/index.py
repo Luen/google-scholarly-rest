@@ -60,7 +60,8 @@ def index():
 
 # Uncomment the following lines if you want to use Scraper API proxies.
 # pg = ProxyGenerator()
-# success = pg.ScraperAPI(os.getenv("SCRAPER_API_KEY"))
+# success = pg.ScraperAPI(os.getenv("SCRAPER_API_KEY")
+# print(f"Scraper API setup success: {success}")
 # scholarly.use_proxy(pg)
 
 
@@ -116,8 +117,8 @@ def get_author_data(author_id):
     else:
         # No cache available, fetch data initially
         print("No cache found, fetching data.")
-        fetch_cache_author_by_id(author_id)
-        return "Fetching data, please retry in a few moments."
+        return fetch_cache_author_by_id(author_id)
+        #return "Fetching data, please retry in a few moments."
 
 def fetch_cache_author_search(name):
     sanitized_name = secure_filename(name)
@@ -166,8 +167,8 @@ def get_author_search(name):
     else:
         # No cache available, fetch data initially
         print("No cache found, fetching data.")
-        fetch_cache_author_search(name)
-        return "Fetching data, please retry in a few moments."
+        return fetch_cache_author_search(name)
+        #return "Fetching data, please retry in a few moments."
 
 # Fetch author data by ID on start, if not already cached
 #get_author_data("ynWS968AAAAJ")
