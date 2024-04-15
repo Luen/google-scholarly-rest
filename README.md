@@ -162,5 +162,10 @@ This API is intended for educational and research purposes. Please ensure that y
 # Contributing
 Contributions are welcome! Please fork the repository and submit pull requests with any enhancements or bug fixes.
 
+```
+python -m venv venv
+source venv/bin/activate
+```
+
 # License
 This open-sourced project is released under the [Unlicense](http://unlicense.org/).
