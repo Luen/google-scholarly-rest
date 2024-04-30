@@ -23,6 +23,8 @@ Navigate to the project directory and run the Flask application:
 
 The API will be available at http://localhost:5000.
 
+`pm2 start ./api/index.py --interpreter python3 --name scholarly`
+
 # Using Proxies
 
 ## Free Proxies
